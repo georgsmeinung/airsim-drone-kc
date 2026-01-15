@@ -1,7 +1,7 @@
 import pprint
 import string
 
-import airsim
+import cosysairsim as airsim
 import numpy as np
 from pynput.keyboard import KeyCode
 

@@ -1,4 +1,6 @@
 # Airsim terminal drone control
+---
+This is an updated version forked from https://github.com/Zartris/Airsim-terminal-drone-control for using the new library `cosysairsim` from https://github.com/Cosys-Lab/Cosys-AirSim
 
 Commands:
 - arm
@@ -10,14 +12,15 @@ Commands:
 - move (x y z vel)
 - moveOnPath (x1 y1 z1 ... xn yn zn vel)
 
-Capital letters does not matter.
+Commands are case insensitive.
 
 ## Install
-pip install msgpack-rpc-python
 
-pip install airsim
+```
+pip install cosys airsim
 
 pip install pynput
+```
 
 We are using pynput over keyboard since linux users have to run as sudo for keyboard to function.
 

@@ -4,7 +4,7 @@ import os
 import sys
 import time
 
-import airsim
+import cosysairsim as airsim
 
 
 class Position:
