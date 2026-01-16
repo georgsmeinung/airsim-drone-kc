@@ -1,3 +1,4 @@
+import os
 import pprint
 import string
 
@@ -10,7 +11,7 @@ from KeyController import KeyController
 # TIMEOUT
 from airsim_functions.orbit import OrbitNavigator
 
-TIMEOUT = 1200  # 20 miniuts
+TIMEOUT = 1200  # 20 mins
 
 # Mesh ID's
 BG = 0
@@ -20,14 +21,19 @@ SHIP = 300
 
 # Commands:
 ARM = "arm"
+CLEAR = "clear"
 DISARM = "disarm"
 MOVE = "move"
 MOVE_PATH = "moveonpath"
+HELP = "help"
 HOME = "home"
 STATE = "state"
 TAKEOFF = "takeoff"
+RESET = "reset"
 STOP = "stop"
+STATE = "state"
 KEYBOARD_CONTROL = "kc"
+PILOT_CONTROL = "pc"
 ORBIT = "inspect"
 FORWARD_FORCE = 1
 BACKWARD_FORCE = -1
@@ -244,7 +250,7 @@ class SimpleTerminalController:
         return current_height
 
     def enter_keyboard_control(self):
-        print("You entered the keyboard mode. Press 't' to return.")
+        print("Keyboard Control mode. Press 't' to return to Command mode.")
         kc = KeyController()
         z = self.client.getMultirotorState().kinematics_estimated.position.z_val
         self.client.enableApiControl(True)
@@ -302,39 +308,93 @@ class SimpleTerminalController:
         s = pprint.pformat(gps_data)
         print("gps_data: %s" % s)
 
-    def run(self):
-        while True:
-            command = input()
-            args = command.split(" ")
-            print("Args given", args)
-            command_type = args[0]
-            if command_type.lower() == ARM:
-                self.arm()
-            elif command_type.lower() == DISARM:
-                self.disarm()
-            elif command_type.lower() == MOVE:
-                self.move_to_position(args)
-            elif command_type.lower() == MOVE_PATH:
-                self.move_on_path(args)
-            elif command_type.lower() == HOME:
-                self.home()
-            elif command_type.lower() == TAKEOFF:
-                self.takeoff()
-            elif command_type.lower() == STATE:
-                self.print_stats()
-            elif command_type.lower() == KEYBOARD_CONTROL:
-                self.enter_keyboard_control()
-            elif command_type.lower() == STOP:
-                self.stop()
-                break
-            elif command_type.lower() == ORBIT:
-                self.orbit(args)
-            else:
-                print("The command given is not a valid command.")
+    def clear_terminal(self):
+        """Clears the terminal screen."""
+        # Check if the operating system is Windows (nt) or POSIX (Linux, macOS, etc.)
+        if os.name == 'nt':
+            _ = os.system('cls')
+        else:
+            _ = os.system('clear')
+        print("Type 'help' for listing commands.")
 
-        # that's enough fun for now. let's quit cleanly
-        airsim.wait_key("When ready to kill")
-        self.client.enableApiControl(False)
+    def show_help(self):
+        """Shows commands supported."""
+        print("""
+        Commands:
+            arm
+            disarm
+            takeoff
+            home
+            reset
+            stop
+            state
+            kc = Keyboard Control
+            move (x y z vel)
+            moveOnPath (x1 y1 z1 ... xn yn zn vel)
+        
+        Keyboard Control:
+            W = + x-axis
+            S = - x-axis
+            D = + y-axis
+            A = - y-axis
+            X = + z-axis (down)
+            Z = - z-axis (up)
+            E = turn right
+            Q = turn left
+            T = Terminate kc mode, return to command mode
+            ? = Get drone telemetry
+        """)
+
+    def reset(self):
+        print("Resetting simulation")
+        self.client.reset()
+
+    def run(self):
+        # Map command strings to lambda functions to normalize the input signature.
+        # All lambdas accept 'args', but only pass them to methods that need them.
+        command_dispatch = {
+            ARM: lambda _: self.arm(),
+            CLEAR: lambda _: self.clear_terminal(),
+            DISARM: lambda _: self.disarm(),
+            MOVE: lambda args: self.move_to_position(args),
+            MOVE_PATH: lambda args: self.move_on_path(args),
+            HELP: lambda _: self.show_help(),
+            HOME: lambda _: self.home(),
+            TAKEOFF: lambda _: self.takeoff(),
+            STATE: lambda _: self.print_stats(),
+            RESET: lambda _: self.reset(),
+            KEYBOARD_CONTROL: lambda _: self.enter_keyboard_control(),
+            STATE: lambda _: self.get_state(),
+            STOP: lambda _: self.stop(),
+            ORBIT: lambda args: self.orbit(args),
+        }
+
+        while True:
+            try:
+                # Get input and clean it
+                raw_input = input("Command: ").strip()
+                if not raw_input: continue
+
+                args = raw_input.split(" ")
+                command_type = args[0].lower()
+
+                print("Args given", args)
+
+                # 1. Look up the function (returns None if not found)
+                action = command_dispatch.get(command_type)
+
+                # 2. Execute or handle error
+                if action:
+                    action(args)
+                else:
+                    print("The command given is not a valid command.")
+
+                # 3. Handle loop exit condition
+                if command_type == STOP.lower():
+                    break
+
+            except (KeyboardInterrupt, EOFError):
+                break
 
 
 if __name__ == '__main__':
