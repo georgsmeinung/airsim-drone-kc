@@ -254,6 +254,7 @@ class SimpleTerminalController:
         kc = KeyController()
         z = self.client.getMultirotorState().kinematics_estimated.position.z_val
         self.client.enableApiControl(True)
+        last_pos = None
         while kc.listener.running:
             self.client.cancelLastTask()
             self.client.enableApiControl(True)
@@ -268,19 +269,11 @@ class SimpleTerminalController:
                                                   current_vel=quad_vel.y_val)
                 z = self.handle_height(keys_to_check=['z', 'x'], pressed_keys=keys, current_height=z)
                 self.yaw = self.handle_rotation(keys_to_check=['e', 'q'], pressed_keys=keys)
-                print(
-                    "current vel: \n vx:{0}, nvx:{1}\n vy:{2}, nvy:{3}\n vz:{4}, nvz:{5}\n".format(quad_vel.x_val,
-                                                                                                   self.vx,
-                                                                                                   quad_vel.y_val,
-                                                                                                   self.vy,
-                                                                                                   quad_vel.z_val,
-                                                                                                   self.vz))
+                print("current vel: \n vx:{0}, nvx:{1}\n vy:{2}, nvy:{3}\n vz:{4}, nvz:{5}\n".format(quad_vel.x_val, self.vx, quad_vel.y_val,self.vy, quad_vel.z_val, self.vz))
                 current_pos = self.client.getMultirotorState().kinematics_estimated.position
-                print("current pos: \n x:{0}, y:{1}\n z:{2}\n".format(current_pos.x_val, current_pos.y_val,
-                                                                      current_pos.z_val))
+                print("current pos: \n x:{0:.2f}, y:{1:.2f}\n z:{2:.2f}\n".format(current_pos.x_val, current_pos.y_val, current_pos.z_val))
 
-                self.client.moveByVelocityZAsync(self.vx, self.vy, z, 0.1, airsim.DrivetrainType.MaxDegreeOfFreedom,
-                                                 airsim.YawMode(True, self.yaw)).join()
+                self.client.moveByVelocityZAsync(self.vx, self.vy, z, 0.1, airsim.DrivetrainType.MaxDegreeOfFreedom, airsim.YawMode(True, self.yaw)).join()
             # self.client.moveByVelocityAsync(self.vx, self.vy, self.vz, 0.1, airsim.DrivetrainType.MaxDegreeOfFreedom,
             #                                 airsim.YawMode(True, self.yaw)).join()
             # airsim.time.sleep(0.2)
@@ -364,7 +357,7 @@ class SimpleTerminalController:
             STATE: lambda _: self.print_stats(),
             RESET: lambda _: self.reset(),
             KEYBOARD_CONTROL: lambda _: self.enter_keyboard_control(),
-            STATE: lambda _: self.get_state(),
+            STATE: lambda _: self.print_stats(),
             STOP: lambda _: self.stop(),
             ORBIT: lambda args: self.orbit(args),
         }
