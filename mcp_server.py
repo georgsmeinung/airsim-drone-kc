@@ -241,6 +241,7 @@ def drone_disarm() -> str:
 @mcp.tool()
 def drone_move_to_position(x: float, y: float, z: float, velocity: float) -> str:
     """Move the drone to a specific (x, y, z) coordinate with a given velocity."""
+    z *= -1  # Invert z to match AirSim's coordinate system where down is negative
     return drone.move_to_position(x, y, z, velocity)
 
 @mcp.tool()
