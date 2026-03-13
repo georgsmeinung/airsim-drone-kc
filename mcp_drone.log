@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2026-03-10 20:13:22,556 - DEBUG - Initializing server 'AirSimDroneController'
 2026-03-10 20:13:22,556 - DEBUG - Registering handler for ListToolsRequest
 2026-03-10 20:13:22,557 - DEBUG - Registering handler for CallToolRequest
@@ -390,3 +391,5 @@
 2026-03-12 21:02:28,295 - INFO - Processing request of type ListToolsRequest
 2026-03-12 21:02:28,295 - DEBUG - Dispatching request of type ListToolsRequest
 2026-03-12 21:02:28,296 - DEBUG - Response sent
+=======
+>>>>>>> 1555cf4053e1403825b6532d9d2dcaad123d20bc
